@@ -1,0 +1,104 @@
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+// Base class (Abstract Class karena ada pure virtual function)
+class RekeningBank {
+protected:
+    string namaPemilik;
+    double saldo;
+
+public:
+    // Constructor manual, ga pake gaya inline initializer list biar ga terlalu rapi
+    RekeningBank(string nama, double saldoAwal) {
+        namaPemilik = nama;
+        saldo = saldoAwal;
+    }
+    
+    virtual ~RekeningBank() {}
+
+    // Pure virtual function
+    virtual void potongAdmin() = 0;
+
+    void tampilkanInfo() {
+        cout << "Nama Nasabah: " << namaPemilik << " | Saldo Saat Ini: Rp " << saldo << endl;
+    }
+};
+
+// ==========================================
+// Class Anak: Rekening Syariah
+// ==========================================
+class RekeningSyariah : public RekeningBank {
+public:
+    RekeningSyariah(string nama, double saldoAwal) : RekeningBank(nama, saldoAwal) {}
+
+    // Sesuai prinsip syariah, saldo utuh ga dipotong
+    void potongAdmin() override {
+        cout << "[Syariah] Atas nama " << namaPemilik << ": Bebas biaya admin bulanan." << endl;
+    }
+};
+
+// ==========================================
+// Class Anak: Rekening Konvensional
+// ==========================================
+class RekeningKonvensional : public RekeningBank {
+public:
+    RekeningKonvensional(string nama, double saldoAwal) : RekeningBank(nama, saldoAwal) {}
+
+    // Potongan flat 15 ribu tiap bulan
+    void potongAdmin() override {
+        saldo -= 15000;
+        cout << "[Konvensional] Atas nama " << namaPemilik << ": Saldo otomatis dipotong Rp 15.000." << endl;
+    }
+};
+
+// ==========================================
+// Class Anak Baru: Rekening Premium
+// ==========================================
+class RekeningPremium : public RekeningBank {
+public:
+    RekeningPremium(string nama, double saldoAwal) : RekeningBank(nama, saldoAwal) {}
+
+    // Aturan potongan dinamis berdasarkan saldo akhir bulan
+    void potongAdmin() override {
+        if (saldo > 10000000) {
+            // Kalau saldo di atas 10 juta free admin
+            cout << "[Premium] Atas nama " << namaPemilik << ": Saldo di atas 10 Juta, bebas biaya admin." << endl;
+        } else {
+            // Kalau saldo kurang dari atau sama dengan 10 juta kena 50 ribu
+            saldo -= 50000;
+            cout << "[Premium] Atas nama " << namaPemilik << ": Saldo <= 10 Juta, saldo dipotong Rp 50.000." << endl;
+        }
+    }
+};
+
+// ==========================================
+// Main Fungsi / Driver Code
+// ==========================================
+int main() {
+    // Pake array biasa isi 4 data, biar kaya tugas praktikum biasa
+    RekeningBank* listAkun[4];
+
+    // Input data dummy buat ngetes system
+    listAkun[0] = new RekeningSyariah("Ahmad", 5000000);
+    listAkun[1] = new RekeningKonvensional("Budi", 2500000);
+    listAkun[2] = new RekeningPremium("Chandra", 15000000); // Saldo aman > 10jt
+    listAkun[3] = new RekeningPremium("Dedi", 8000000);     // Saldo kena potong <= 10jt
+
+    cout << "=== PROSES SISTEM OTOMATISASI AKHIR BULAN ===" << endl << endl;
+
+    // Perulangan buat eksekusi semua jenis rekening pake polimorfisme
+    for (int i = 0; i < 4; i++) {
+        listAkun[i]->potongAdmin();
+        listAkun[i]->tampilkanInfo();
+        cout << "------------------------------------------------" << endl;
+    }
+
+    // Delete manual biar ga memory leak, kebiasaan yang dinilai dosen
+    for (int i = 0; i < 4; i++) {
+        delete listAkun[i];
+    }
+
+    return 0;
+}
